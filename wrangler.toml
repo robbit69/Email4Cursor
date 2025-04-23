@@ -1,6 +1,6 @@
 [build]
 command = "cd public && npm install && npm run build"
-build_output_directory = "dist"
+pages_build_output_directory = "public/dist"
 
 [site]
 bucket = "public/dist"
