@@ -1,0 +1,16 @@
+{
+  "name": "email4cursor",
+  "version": "1.0.0",
+  "description": "匿名邮箱接码服务",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "hono": "^3.12.0",
+    "inter-ui": "^4.1.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.13.0"
+  }
+}
