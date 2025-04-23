@@ -17,91 +17,51 @@
 /
 ├── public/              # 前端代码
 ├── worker/              # Workers 后端代码
-├── .dev.vars.example    # 后端环境变量示例
-├── .env.local.example   # 前端环境变量示例
-└── .env.example         # 环境变量说明
+└── .env.example         # 环境变量示例文件
 ```
 
 ## 环境变量配置
 
-项目使用两套环境变量系统：
+### 前端环境变量
+- `ACCESS_CODE`: 访问密码（留空则不启用密码验证）
 
 ### 后端环境变量（Cloudflare Workers）
+- `EMAIL_DOMAIN`: 邮箱域名配置
+- `DATABASE_ID`: D1 数据库 ID
 
-1. 本地开发：
-   - 复制 `.dev.vars.example` 为 `.dev.vars`
-   - 填入实际的配置值：
-     - `EMAIL_DOMAIN`: 邮箱域名
-     - `DATABASE_ID`: D1 数据库 ID
-   - 使用 `wrangler dev` 启动服务
+## 部署说明
 
-2. 生产环境：
-   - 在 Cloudflare Dashboard 中配置相同的变量
+1. Fork 本项目到你的 GitHub 账号
 
-### 前端环境变量（Cloudflare Pages）
+2. 在 Cloudflare 中设置：
+   - 创建一个 D1 数据库
+   - 配置邮件接收的 Worker
+   - 在 Pages 中连接你的 GitHub 仓库
+   - 在 Pages 的环境变量中配置必要的变量
 
-1. 本地开发：
-   - 复制 `.env.local.example` 为 `.env.local`
-   - 填入实际的配置值：
-     - `VITE_API_URL`: API 接口地址
-     - `VITE_APP_NAME`: 应用名称
-     - `VITE_GITHUB_URL`: 项目地址
-     - `VITE_ACCESS_CODE`: 访问密码（留空则不启用密码验证）
-   - 使用 `npm run dev` 启动服务
-
-2. 生产环境：
-   - 在 Cloudflare Pages 的项目设置中配置相同的变量
-
-## 开发环境设置
-
-1. 安装依赖：
+3. 本地开发（可选）：
 ```bash
+# 安装依赖
 npm install
-```
 
-2. 配置环境变量：
-   - 复制 `.env.example` 为 `.dev.vars` 和 `.env.local`
-   - 填入实际配置值
-
-3. 本地开发：
-```bash
-# 启动后端服务
-npm run dev:worker
-
-# 启动前端服务
-npm run dev:frontend
-```
-
-4. 部署：
-```bash
-# 部署 Workers
-npm run deploy:worker
-
-# 部署 Pages（自动通过 GitHub 触发）
-git push origin main
+# 使用 wrangler 进行本地开发
+npm run dev
 ```
 
 ## 技术栈
 
 - 前端：React + Vite
-- 后端：Cloudflare Workers + Hono
+- 后端：Cloudflare Workers
 - 数据库：Cloudflare D1
 
 ## 注意事项
 
-1. 不要提交包含敏感信息的文件：
-   - `.dev.vars`
-   - `.env.local`
-   - 任何包含实际配置值的环境变量文件
+1. 确保你有：
+   - Cloudflare 账号
+   - 已配置的域名
+   - D1 数据库实例
 
-2. 本地开发时需要：
-   - 有效的 Cloudflare 账号
-   - 配置好的 D1 数据库
-   - 已设置的邮箱域名
-
-3. 数据库迁移：
-   - 使用 `wrangler` 命令行工具管理数据库迁移
-   - 迁移文件位于 `worker/db/migrations/` 目录
+2. 本项目主要面向直接部署到 Cloudflare，本地开发为可选项
 
 ## 许可证
 

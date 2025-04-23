@@ -6,6 +6,17 @@ const app = new Hono();
 // 启用CORS
 app.use('/*', cors());
 
+// 初始化数据库
+async function initializeDatabase(db) {
+  try {
+    const schema = await fetch(new URL('./db/schema.sql', import.meta.url)).then(r => r.text());
+    await db.batch(schema.split(';').filter(stmt => stmt.trim()).map(stmt => db.prepare(stmt)));
+    console.log('Database initialized successfully');
+  } catch (error) {
+    console.error('Failed to initialize database:', error);
+  }
+}
+
 // 生成随机邮箱前缀
 function generateRandomPrefix(length = 8) {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
@@ -15,23 +26,85 @@ function generateRandomPrefix(length = 8) {
   ).join('');
 }
 
+// 中间件：检查数据库初始化
+app.use('/*', async (c, next) => {
+  try {
+    // 尝试查询 email_addresses 表
+    await c.env.DB.prepare('SELECT 1 FROM email_addresses LIMIT 1').run();
+  } catch (error) {
+    // 如果表不存在，会抛出错误，这时我们初始化数据库
+    if (error.message.includes('no such table')) {
+      await initializeDatabase(c.env.DB);
+    }
+  }
+  
+  await next();
+});
+
+// 提取验证码的辅助函数
+function extractVerificationCode(subject, body) {
+  // 常见的验证码模式
+  const patterns = [
+    /验证码[：:]\s*([0-9]{4,6})/,
+    /code[：:]\s*([0-9]{4,6})/i,
+    /([0-9]{4,6})\s*(?:是|为|is)/,
+    /验证码\D*([0-9]{4,6})/,
+    /code\D*([0-9]{4,6})/i,
+    /([0-9]{4,6})/  // 最后尝试匹配任何4-6位数字
+  ];
+
+  // 先尝试从主题中提取
+  for (const pattern of patterns) {
+    const match = subject?.match(pattern);
+    if (match?.[1]) return match[1];
+  }
+
+  // 再从正文中提取
+  for (const pattern of patterns) {
+    const match = body?.match(pattern);
+    if (match?.[1]) return match[1];
+  }
+
+  return null;
+}
+
 // 创建新邮箱
 app.post('/emails', async (c) => {
   const { prefix } = await c.req.json();
-  const emailPrefix = prefix || generateRandomPrefix();
-  const emailAddress = `${emailPrefix}@您的域名`; // 替换为您的域名
-
-  try {
-    await c.env.DB.prepare(
-      'INSERT INTO email_addresses (email_address) VALUES (?)'
-    ).bind(emailAddress).run();
-
-    return c.json({ email: emailAddress });
-  } catch (error) {
-    if (error.message.includes('UNIQUE constraint failed')) {
-      return c.json({ error: '邮箱已存在' }, 400);
+  
+  // 如果用户指定了前缀
+  if (prefix) {
+    const emailAddress = `${prefix}@${c.env.EMAIL_DOMAIN}`;
+    try {
+      await c.env.DB.prepare(
+        'INSERT INTO email_addresses (email_address) VALUES (?)'
+      ).bind(emailAddress).run();
+      return c.json({ email: emailAddress });
+    } catch (error) {
+      if (error.message.includes('UNIQUE constraint failed')) {
+        return c.json({ error: '指定的邮箱前缀已存在' }, 400);
+      }
+      return c.json({ error: '创建邮箱失败' }, 500);
     }
-    return c.json({ error: '创建邮箱失败' }, 500);
+  }
+
+  // 如果是随机生成前缀,则循环尝试直到成功
+  while (true) {
+    const emailPrefix = generateRandomPrefix();
+    const emailAddress = `${emailPrefix}@${c.env.EMAIL_DOMAIN}`;
+    
+    try {
+      await c.env.DB.prepare(
+        'INSERT INTO email_addresses (email_address) VALUES (?)'
+      ).bind(emailAddress).run();
+      return c.json({ email: emailAddress });
+    } catch (error) {
+      if (!error.message.includes('UNIQUE constraint failed')) {
+        return c.json({ error: '创建邮箱失败' }, 500);
+      }
+      // 如果是重复,则继续循环尝试新的前缀
+      continue;
+    }
   }
 });
 

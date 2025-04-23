@@ -1,16 +1,38 @@
-# 依赖
+# dependencies
 node_modules/
 .pnp
 .pnp.js
 
-# 测试
+# testing
 coverage/
 
-# 构建输出
-dist/
+# production
 build/
-.next/
-out/
+dist/
+.wrangler/
+.dev.vars
+
+# misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 编辑器和系统文件
+doc.md
+
+# 日志
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # 环境变量（但保留示例文件）
 .env
@@ -20,7 +42,6 @@ out/
 .env.development.local
 .env.test.local
 .env.production.local
-.dev.vars
 !.dev.vars.example
 
 # 编辑器和系统文件
