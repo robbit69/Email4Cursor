@@ -1,9 +1,9 @@
 [build]
 command = "cd public && npm install && npm run build"
-build_output_directory = "public/dist"
+build_output_directory = "dist"
 
 [site]
-bucket = "./public/dist"
+bucket = "public/dist"
 
 [env.production]
 name = "email4cursor"
