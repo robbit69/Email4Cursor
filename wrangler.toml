@@ -1,5 +1,12 @@
+[build]
+command = "cd public && npm install && npm run build"
+pages_build_output_directory = "public/dist"
+
+[site]
+bucket = "./public/dist"
+
+[env.production]
 name = "email4cursor"
-main = "worker/index.js"
 compatibility_date = "2024-01-01"
 
 # D1 数据库绑定
@@ -12,8 +19,4 @@ database_id = ""  # 在本地开发时需要填入您的数据库ID
 # 本地开发时会从 .dev.vars 加载
 # 生产环境需要在 Cloudflare Dashboard 中配置
 [vars]
-EMAIL_DOMAIN = ""
-
-[build]
-command = "cd public && npm install && npm run build"
-build_output_directory = "public/dist" 
+EMAIL_DOMAIN = "" 
